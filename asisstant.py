@@ -52,7 +52,6 @@ def main():
         content="I would like to have cat picture. Can you help me?"
     )
 
-    #print(message)
     run = client.beta.threads.runs.create(
         thread_id=thread.id,
         assistant_id=assistant.id,
@@ -60,7 +59,7 @@ def main():
     )
     return thread, message, run
 
-def catCall(data):
+def catCall(data,thread, message, run):
     print("cat called")
     functionCallInfo= data["required_action"]["submit_tool_outputs"]["tool_calls"][0]
     print(functionCallInfo)
@@ -71,6 +70,17 @@ def catCall(data):
     #funcOutput= globals()[funcName](*funcParam) if len(funcParam)>0 else globals()[funcName]()
     funcOutput= json.dumps(globals()[funcName]())
     print(funcOutput)
+    run = client.beta.threads.runs.submit_tool_outputs(
+        thread_id=thread.id,
+        run_id=run.id,
+        tool_outputs=[
+            {
+                "tool_call_id": callId,
+                "output": funcOutput,
+            }
+            ]
+    )
+    processAIResponse(thread, message, run)
     return
 
 
@@ -87,7 +97,6 @@ def completed():
     )
     print(messages.data[0].id)
     print(get_response(thread))
-
     return
 
 def processAIResponse(thread, message, run):
