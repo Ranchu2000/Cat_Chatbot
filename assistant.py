@@ -43,9 +43,10 @@ def initAssistant():
         }
     }]
     )
-
+    return assistant
+def createThread():
     thread = client.beta.threads.create()
-    return assistant,thread
+    return thread
 
 def catCall(data,thread, run):
     print("cat called")
@@ -66,8 +67,7 @@ def catCall(data,thread, run):
             }
             ]
     )
-    processAIResponse(thread, run)
-    return
+    return processAIResponse(thread, run)
 
 
 def get_response(thread):
@@ -77,12 +77,13 @@ def get_response(thread):
 
 
 def finish_response(thread): #TODO send back to frontend-> AI message + chat history
+    print("AI's Response")
     messages = client.beta.threads.messages.list(
         thread_id=thread.id
     )
-    print(messages.data[0].id)
-    print(get_response(thread))
-    return
+    print(messages.data[0].content[0].text.value)
+    return messages.data[0].content[0].text.value
+    
 
 def processAIResponse(thread, run):
     while True:
@@ -91,20 +92,19 @@ def processAIResponse(thread, run):
         data = r.json()
         status= data["status"]
         if status=="requires_action":
-            catCall(data,thread, run)
-            break
+            return catCall(data,thread, run)
         elif status=="completed":
-            finish_response()
-            break
+            return finish_response(thread)
         elif status=="queued" or status=="in_progress":
             print("in progress")
             time.sleep(1)
         else:
             print(status)
             print("unhandled status")
-            break
+            return None
 
-def addUserMessage(msg,thread, assistant):
+def addUserMessage(msg, thread,assistant):
+    print("User's Message "+ msg)
     message = client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -115,11 +115,10 @@ def addUserMessage(msg,thread, assistant):
         assistant_id=assistant.id,
         instructions="Be pleasant and encourage users with pictures of cats."
     )
-    return run
+    return processAIResponse(thread, run)
 
 if __name__=="__main__":
-   assistant, thread= initAssistant()
-   run= addUserMessage("I am feeling burnt out, could you help me?", thread, assistant)
-   processAIResponse(thread, run)
-   run= addUserMessage("I would like to have 3 cat pictures of different species. Can you help me?", thread, assistant)
-   processAIResponse(thread, run)
+   assistant= initAssistant()
+   thread=createThread()
+   print(addUserMessage("I am feeling burnt out, could you help me?", thread, assistant))
+   print(addUserMessage("I would like to have 3 cat pictures of different species. Can you help me?", thread, assistant))
