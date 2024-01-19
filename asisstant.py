@@ -4,8 +4,7 @@ import time
 from openai import OpenAI
 from dotenv import load_dotenv
 import json
-from catCalling import getCatPicture
-#TODO manage message history
+from catCalling import getCatPictureAdv
 
 load_dotenv()
 OPENAI_API_KEY= os.getenv('OPENAI_API_KEY')
@@ -18,57 +17,44 @@ headers = {
 "OpenAI-Beta": "assistants=v1"
 }
 
-
-# assistant = client.beta.assistants.create(
-#     name="Math Tutor",
-#     instructions="You are a personal math tutor. Write and run code to answer math questions.",
-#     tools=[{"type": "code_interpreter"}],
-#     model="gpt-3.5-turbo-1106"
-# )
-
-def main():
+def initAssistant():
     assistant = client.beta.assistants.create(
     instructions="You are a cat chatbot who provides cat pictures to employees of Nika.eco. Use the provided functions to render your services.",
     model="gpt-4-1106-preview",
     tools=[{
-        "type":"function",
-        "function":{
-            "name": "getCatPicture",
-            "description": "Get a cat picture",
+        "type": "function",
+        "function": {
+            "name": "getCatPictureAdv",
+            "description": "Get pictures of cats based on specified criteria",
             "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": [],
+            "type": "object",
+            "properties": {
+                "quantity": {
+                "type": "integer",
+                "description": "Number of cat pictures to retrieve"
+                },
+                "diff_breeds": {
+                "type": "boolean",
+                "description": "Whether to get different breeds (true) or same breed (false)"
+                }
+            },
+            "required": ["quantity"]
             }
         }
     }]
     )
 
     thread = client.beta.threads.create()
+    return assistant,thread
 
-    message = client.beta.threads.messages.create(
-        thread_id=thread.id,
-        role="user",
-        content="I would like to have cat picture. Can you help me?"
-    )
-
-    run = client.beta.threads.runs.create(
-        thread_id=thread.id,
-        assistant_id=assistant.id,
-        instructions="Please address the user as Jane Doe. The user has a premium account."
-    )
-    return thread, message, run
-
-def catCall(data,thread, message, run):
+def catCall(data,thread, run):
     print("cat called")
     functionCallInfo= data["required_action"]["submit_tool_outputs"]["tool_calls"][0]
-    print(functionCallInfo)
     callId=functionCallInfo["id"]
     funcName=functionCallInfo["function"]["name"]
-    funcParam=functionCallInfo["function"]["arguments"]
-    print(funcParam)
-    #funcOutput= globals()[funcName](*funcParam) if len(funcParam)>0 else globals()[funcName]()
-    funcOutput= json.dumps(globals()[funcName]())
+    funcParam=json.loads(functionCallInfo["function"]["arguments"])
+    funcOutput= json.dumps(globals()[funcName](**funcParam))
+    #funcOutput= json.dumps(globals()[funcName]())
     print(funcOutput)
     run = client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread.id,
@@ -80,7 +66,7 @@ def catCall(data,thread, message, run):
             }
             ]
     )
-    processAIResponse(thread, message, run)
+    processAIResponse(thread, run)
     return
 
 
@@ -90,38 +76,50 @@ def get_response(thread):
     return last_message
 
 
-def completed():
-    print("completed")
+def finish_response(thread): #TODO send back to frontend-> AI message + chat history
     messages = client.beta.threads.messages.list(
-    thread_id=thread.id
+        thread_id=thread.id
     )
     print(messages.data[0].id)
     print(get_response(thread))
     return
 
-def processAIResponse(thread, message, run):
+def processAIResponse(thread, run):
     while True:
         print("polling")
         r= requests.get("https://api.openai.com/v1/threads/{}/runs/{}".format(thread.id,run.id), headers=headers)
         data = r.json()
         status= data["status"]
         if status=="requires_action":
-            catCall(data,thread, message, run)
+            catCall(data,thread, run)
             break
         elif status=="completed":
-            completed()
+            finish_response()
             break
-
         elif status=="queued" or status=="in_progress":
             print("in progress")
             time.sleep(1)
         else:
             print(status)
+            print("unhandled status")
             break
 
-
-
+def addUserMessage(msg,thread, assistant):
+    message = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=msg
+    )
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant.id,
+        instructions="Be pleasant and encourage users with pictures of cats."
+    )
+    return run
 
 if __name__=="__main__":
-   thread, message, run= main()
-   processAIResponse(thread, message, run)
+   assistant, thread= initAssistant()
+   run= addUserMessage("I am feeling burnt out, could you help me?", thread, assistant)
+   processAIResponse(thread, run)
+   run= addUserMessage("I would like to have 3 cat pictures of different species. Can you help me?", thread, assistant)
+   processAIResponse(thread, run)

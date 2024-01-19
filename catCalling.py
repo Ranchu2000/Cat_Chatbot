@@ -24,7 +24,7 @@ def getCatPicture():
     response["imageURL"]=data["url"]
     return response
 
-def getCatPictureAdv(quantity,diff_breeds):
+def getCatPictureAdv(quantity,diff_breeds=False):
     params={
         "limit":quantity,
         "has_breeds":1,
