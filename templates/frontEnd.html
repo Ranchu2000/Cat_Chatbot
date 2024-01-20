@@ -3,33 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="templates\assets\cat.png"/> 
     <title>Chatbot</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0 0 20px 0;
+            display: flex;
+            flex-direction: column; /* Organize content in a column */
+        }
+        #banner {
+            text-align: center;
+            background-color: #a8dadc; /* Pastel banner color */
+            color: #1d3557; /* Contrast text color */
+            padding: 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px auto; /* Centering chat history */
+            width: 80%; /* Adjust width as needed */
+            background-color: #f1faee; /* Pastel color for chat history */
+        }   
+        /* Additional styling for messages */
+        .user-message, .bot-message {
+            margin: 5px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e0e0e0;
+        }
+        .bot-message {
+            background-color: #f0f0f0;
+        }
+        .image-container {
+            display: flex; /* Enables flexbox */
+            justify-content: space-around; /* Space out images evenly */
+            align-items: center; /* Align images vertically */
+            flex-wrap: wrap; /* Allow multiple rows if there are many images */
+        }
+
+        .chat-image {
+            flex: 1; /* Allows images to grow and fill the space */
+            max-width: 50%; /* Maximum width of each image */
+            height: auto; /* Keep image aspect ratio */
+            margin: 5px; /* Space between images */
+        }
+    </style>
     <script>
         function submitMessage(event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault();
 
-            var message = document.getElementById('message-input').value;
+            var messageInput = document.getElementById('message-input');
+            var message = messageInput.value;
+            messageInput.value = ''; // Clear input field
+
+            addMessageToChatHistory('You', message);
+
+            // Send message to server
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/sendMessage", true);
             xhr.setRequestHeader("Content-Type", "application/json");
 
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    // Handle the response here
-                    console.log('Response:', xhr.responseText);
+                    addMessageToChatHistory('Bot', xhr.responseText);
                 }
             };
 
             var data = JSON.stringify({ "message": message });
             xhr.send(data);
+        }
 
-            // Clear the input field
-            document.getElementById('message-input').value = '';
+        function addMessageToChatHistory(sender, message) {
+            var chatHistory = document.getElementById('chat-history');
+            var messageDiv = document.createElement('div');
+            var imageContainer = document.createElement('div'); // Container for images
+            imageContainer.classList.add('image-container');
+
+            messageDiv.classList.add(sender === 'You' ? 'user-message' : 'bot-message');
+            messageDiv.innerHTML = sender + ': ' + message;
+            messageDiv.appendChild(imageContainer);
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom
         }
     </script>
 </head>
 <body>
-    <h1>Chatbot</h1>
+    <div id="banner">Chatbot</div>
+    <div id="chat-history"></div>
     <form id="chat-form" onsubmit="submitMessage(event)">
         <input type="text" id="message-input" placeholder="Type your message here" required>
         <button type="submit">Send</button>
