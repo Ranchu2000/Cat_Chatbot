@@ -10,12 +10,12 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column; /* Organize content in a column */
+            flex-direction: column; 
         }
         #banner {
             text-align: center;
-            background-color: #a8dadc; /* Pastel banner color */
-            color: #1d3557; /* Contrast text color */
+            background-color: #a8dadc; 
+            color: #1d3557;
             padding: 10px 0;
             font-size: 24px;
             font-weight: bold;
@@ -29,7 +29,6 @@
             background-color: #f1faee;
             flex-grow: 1;
         }
-        /* Additional styling for messages */
         .user-message, .bot-message {
             margin: 5px;
             padding: 5px;
@@ -42,31 +41,29 @@
             background-color: #f0f0f0;
         }
         .image-container {
-            display: flex; /* Enables flexbox */
-            justify-content: space-around; /* Space out images evenly */
-            align-items: center; /* Align images vertically */
-            flex-wrap: wrap; /* Allow multiple rows if there are many images */
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            flex-wrap: wrap; 
         }
 
         .chat-image {
-            flex: 1; /* Allows images to grow and fill the space */
-            max-width: 50%; /* Maximum width of each image */
-            height: auto; /* Keep image aspect ratio */
-            margin: 5px; /* Space between images */
+            display: block;
+            max-width: 50%; 
+            height: auto; 
+            margin: 5px; 
         }
         #chat-form {
             flex-shrink: 0;
             padding-bottom: 20px;
             margin: 0 auto;
-            width: 80%; /* Match the width of chat history */
-            /* Additional styles for your form */
-            /* If your form has inner elements, ensure they align with the start of the chat history */
+            width: 80%; 
         }
         #chat-form input, #chat-form button {
-            margin-left: 10px; /* Adjust this value to match the padding of chat history */
-            /* Other styles for input and button */
+            margin-left: 10px; 
         }
     </style>
+
     <script>
         function submitMessage(event) {
             event.preventDefault();
@@ -75,7 +72,7 @@
             var message = messageInput.value;
             messageInput.value = ''; // Clear input field
 
-            addMessageToChatHistory('You', message);
+            //addMessageToChatHistory('You', message);
 
             // Send message to server
             var xhr = new XMLHttpRequest();
@@ -84,7 +81,7 @@
 
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    addMessageToChatHistory('Bot', xhr.responseText);
+                    addMessageToChatHistory(JSON.parse(xhr.responseText));
                 }
             };
 
@@ -92,17 +89,34 @@
             xhr.send(data);
         }
 
-        function addMessageToChatHistory(sender, message) {
+        function addMessageToChatHistory(parsedData) {
             var chatHistory = document.getElementById('chat-history');
-            var messageDiv = document.createElement('div');
-            var imageContainer = document.createElement('div'); // Container for images
-            imageContainer.classList.add('image-container');
-
-            messageDiv.classList.add(sender === 'You' ? 'user-message' : 'bot-message');
-            messageDiv.innerHTML = sender + ': ' + message;
-            messageDiv.appendChild(imageContainer);
-            chatHistory.appendChild(messageDiv);
+            chatHistory.innerHTML="";
+            parsedData.forEach(function(item) {
+                if (item.User){
+                    var messageDiv = document.createElement('div');
+                    var imageContainer = document.createElement('div'); // Container for images
+                    imageContainer.classList.add('image-container');
+                    messageDiv.classList.add('user-message')
+                    messageDiv.innerHTML = "You" + ': ' + item.User;
+                    messageDiv.appendChild(imageContainer);
+                    chatHistory.appendChild(messageDiv);
+                }
+                if (item.Bot){
+                    var messageDiv = document.createElement('div');
+                    var imageContainer = document.createElement('div'); // Container for images
+                    imageContainer.classList.add('image-container');
+                    messageDiv.classList.add('bot-message')
+                    messageDiv.innerHTML = "Bot" + ': ' + item.Bot;
+                    messageDiv.appendChild(imageContainer);
+                    chatHistory.appendChild(messageDiv);
+                }
+            });
             chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom
+        }
+        var reset = "{{ resetStatus | safe }}";
+        if (reset === "True"){
+            alert("Reset!")
         }
     </script>
 </head>

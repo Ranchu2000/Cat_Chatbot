@@ -24,24 +24,7 @@ def getCatPicture():
     response["imageURL"]=data["url"]
     return response
 
-def getCatPictureAdv(quantity,diff_breeds=False):
-    params={
-        "limit":quantity,
-        "has_breeds":1,
-    }
-    if diff_breeds:
-        chosenBreeds=[]
-        for i in range(quantity):
-            chosenBreeds.append(breedIds[random.randint(0,len(breedIds)-1)])
-        params["breed_ids"]= chosenBreeds
-    else:
-        params["breed_ids"]= breedIds[random.randint(0,len(breedIds)-1)]
-    headers = {
-        "x-api-key": CAT_API_KEY
-    }
-    r = requests.get("https://api.thecatapi.com/v1/images/search", params= params, headers=headers)
-    data = r.json()
-    #print(data)
+def processData(data):
     response=[]
     for cat in data:
         catData={}
@@ -51,6 +34,35 @@ def getCatPictureAdv(quantity,diff_breeds=False):
         response.append(catData)
     return response
 
+def getCatPictureAdv(quantity,diff_breeds=False):
+    params={
+        "limit":quantity,
+        "has_breeds":1,
+    }
+    headers = {
+        "x-api-key": CAT_API_KEY
+    }
+    if diff_breeds:
+        chosenBreeds=[]
+        while len(chosenBreeds)!= quantity+1:
+            randomNum=breedIds[random.randint(0,len(breedIds)-1)]
+            if randomNum not in chosenBreeds:
+                chosenBreeds.append(randomNum)
+        params["limit"]=1
+        response=[]
+        for breed in chosenBreeds:
+            params["breed_ids"]= breed
+            r = requests.get("https://api.thecatapi.com/v1/images/search", params= params, headers=headers)
+            data = r.json()
+            response.append(processData(data))
+            
+    else:
+        params["breed_ids"]= breedIds[random.randint(0,len(breedIds)-1)]
+        r = requests.get("https://api.thecatapi.com/v1/images/search", params= params, headers=headers)
+        data = r.json()
+        response=processData(data)
+    return response
+
 def getCatBreeds():
     r = requests.get("https://api.thecatapi.com/v1/breeds")
     data = r.json()
@@ -58,7 +70,6 @@ def getCatBreeds():
     for breed in data:
         breedId.append(breed["id"])
     return breedId
-
 
 if __name__=="__main__":
    response= getCatPicture(3,False)

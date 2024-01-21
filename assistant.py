@@ -44,46 +44,25 @@ def initAssistant():
     }]
     )
     return assistant
+
 def createThread():
     thread = client.beta.threads.create()
     return thread
 
-def catCall(data,thread, run):
-    print("cat called")
-    functionCallInfo= data["required_action"]["submit_tool_outputs"]["tool_calls"][0]
-    callId=functionCallInfo["id"]
-    funcName=functionCallInfo["function"]["name"]
-    funcParam=json.loads(functionCallInfo["function"]["arguments"])
-    funcOutput= json.dumps(globals()[funcName](**funcParam))
-    #funcOutput= json.dumps(globals()[funcName]())
-    print(funcOutput)
-    run = client.beta.threads.runs.submit_tool_outputs(
+
+def addUserMessage(msg,thread,assistant):
+    print("User's Message "+ msg)
+    message = client.beta.threads.messages.create(
         thread_id=thread.id,
-        run_id=run.id,
-        tool_outputs=[
-            {
-                "tool_call_id": callId,
-                "output": funcOutput,
-            }
-            ]
+        role="user",
+        content=msg
+    )
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant.id,
+        instructions="Be pleasant and encourage users with pictures of cats."
     )
     return processAIResponse(thread, run)
-
-
-def get_response(thread):
-    messages = client.beta.threads.messages.list(thread_id=thread.id, order="desc", limit=1)
-    last_message = messages.data[0].content[0].text.value
-    return last_message
-
-
-def finish_response(thread): #TODO send back to frontend-> AI message + chat history
-    print("AI's Response")
-    messages = client.beta.threads.messages.list(
-        thread_id=thread.id
-    )
-    print(messages.data[0].content[0].text.value)
-    return messages.data[0].content[0].text.value
-    
 
 def processAIResponse(thread, run):
     while True:
@@ -103,19 +82,39 @@ def processAIResponse(thread, run):
             print("unhandled status")
             return None
 
-def addUserMessage(msg, thread,assistant):
-    print("User's Message "+ msg)
-    message = client.beta.threads.messages.create(
+
+def catCall(data,thread, run):
+    print("cat called")
+    functionCallInfo= data["required_action"]["submit_tool_outputs"]["tool_calls"][0]
+    callId=functionCallInfo["id"]
+    funcName=functionCallInfo["function"]["name"]
+    funcParam=json.loads(functionCallInfo["function"]["arguments"])
+    funcOutput= json.dumps(globals()[funcName](**funcParam))
+    run = client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread.id,
-        role="user",
-        content=msg
-    )
-    run = client.beta.threads.runs.create(
-        thread_id=thread.id,
-        assistant_id=assistant.id,
-        instructions="Be pleasant and encourage users with pictures of cats."
+        run_id=run.id,
+        tool_outputs=[
+            {
+                "tool_call_id": callId,
+                "output": funcOutput,
+            }
+            ]
     )
     return processAIResponse(thread, run)
+
+
+def finish_response(thread):
+    print("AI's Response")
+    messages = client.beta.threads.messages.list(
+        thread_id=thread.id
+    )
+    print(messages.data[0].content[0].text.value)
+    return messages.data[0].content[0].text.value
+    
+
+def getMessages(thread):
+    messages = client.beta.threads.messages.list(thread_id=thread.id, order='desc')
+    return messages
 
 if __name__=="__main__":
    assistant= initAssistant()
