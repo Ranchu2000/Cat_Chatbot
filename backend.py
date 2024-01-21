@@ -4,7 +4,11 @@ from assistant import initAssistant, createThread, addUserMessage, getMessages
 import markdown2
 import re
 
-app = Flask(__name__)
+app = Flask(__name__,
+            static_url_path='', 
+            static_folder='web/static',
+            template_folder='web/templates')
+
 CORS(app, supports_credentials=True)
 
 assistant= initAssistant()
@@ -35,6 +39,10 @@ def runllm():
   chatInstance["User"]=userMessage
   chatInstance["Bot"]=image_tagged_html_response
   chatHistory.append(chatInstance)
+  return chatHistory
+
+@app.route('/getMessage', methods=['POST'])
+def getChatHistory():
   return chatHistory
 
 if __name__ == "__main__":

@@ -3,78 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column; 
-        }
-        #banner {
-            text-align: center;
-            background-color: #a8dadc; 
-            color: #1d3557;
-            padding: 10px 0;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        #chat-history {
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px auto;
-            width: 80%;
-            background-color: #f1faee;
-            flex-grow: 1;
-        }
-        .user-message, .bot-message {
-            margin: 5px;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        .user-message {
-            background-color: #e0e0e0;
-        }
-        .bot-message {
-            background-color: #f0f0f0;
-        }
-        .image-container {
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            flex-wrap: wrap; 
-        }
-
-        .chat-image {
-            display: block;
-            max-width: 50%; 
-            height: auto; 
-            margin: 5px; 
-        }
-        #chat-form {
-            flex-shrink: 0;
-            padding-bottom: 20px;
-            margin: 0 auto;
-            width: 80%; 
-        }
-        #chat-form input, #chat-form button {
-            margin-left: 10px; 
-        }
-    </style>
-
+    <title>ChatPurrfect</title>
+    <link rel="stylesheet" href="styles.css">
     <script>
         function submitMessage(event) {
             event.preventDefault();
 
             var messageInput = document.getElementById('message-input');
             var message = messageInput.value;
-            messageInput.value = ''; // Clear input field
-
-            //addMessageToChatHistory('You', message);
-
-            // Send message to server
+            messageInput.value = '';
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/sendMessage", true);
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -95,7 +32,7 @@
             parsedData.forEach(function(item) {
                 if (item.User){
                     var messageDiv = document.createElement('div');
-                    var imageContainer = document.createElement('div'); // Container for images
+                    var imageContainer = document.createElement('div');
                     imageContainer.classList.add('image-container');
                     messageDiv.classList.add('user-message')
                     messageDiv.innerHTML = "You" + ': ' + item.User;
@@ -104,7 +41,7 @@
                 }
                 if (item.Bot){
                     var messageDiv = document.createElement('div');
-                    var imageContainer = document.createElement('div'); // Container for images
+                    var imageContainer = document.createElement('div');
                     imageContainer.classList.add('image-container');
                     messageDiv.classList.add('bot-message')
                     messageDiv.innerHTML = "Bot" + ': ' + item.Bot;
@@ -112,7 +49,7 @@
                     chatHistory.appendChild(messageDiv);
                 }
             });
-            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom
+            chatHistory.scrollTop = chatHistory.scrollHeight; 
         }
         var reset = "{{ resetStatus | safe }}";
         if (reset === "True"){
@@ -121,7 +58,7 @@
     </script>
 </head>
 <body>
-    <div id="banner">Chatbot</div>
+    <div id="banner">ChatPurrfect</div>
     <div id="chat-history"></div>
     <form id="chat-form" onsubmit="submitMessage(event)">
         <input type="text" id="message-input" placeholder="Type your message here" required>
