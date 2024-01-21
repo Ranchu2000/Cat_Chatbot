@@ -1,4 +1,5 @@
 # ChatPurrfect | Cat Chatbot powered by OpenAI Assistant
+![image](https://github.com/Ranchu2000/ChatPurffect/assets/77315991/8c715429-6427-42b3-a8fd-fcc5266013e6)
 
 ## Running Locally
 1. Clone the repository
