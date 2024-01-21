@@ -55,6 +55,19 @@
         if (reset === "True"){
             alert("Reset!")
         }
+        window.onload = function() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/getMessage", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    addMessageToChatHistory(JSON.parse(xhr.responseText));
+                }
+            };
+            var data = JSON.stringify({ "message": "posting for message" });
+            xhr.send(data);
+        };
     </script>
 </head>
 <body>
