@@ -5,23 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatPurrfect</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="cat.png" type="image/png">
     <script>
         function submitMessage(event) {
             event.preventDefault();
-
             var messageInput = document.getElementById('message-input');
             var message = messageInput.value;
-            messageInput.value = '';
+            messageInput.value = '';//clear input field
+
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/sendMessage", true);
             xhr.setRequestHeader("Content-Type", "application/json");
-
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     addMessageToChatHistory(JSON.parse(xhr.responseText));
                 }
             };
-
             var data = JSON.stringify({ "message": message });
             xhr.send(data);
         }
@@ -55,7 +54,7 @@
         if (reset === "True"){
             alert("Reset!")
         }
-        window.onload = function() {
+        window.onload = function() { //loads current chat history
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/getMessage", true);
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -71,7 +70,10 @@
     </script>
 </head>
 <body>
-    <div id="banner">ChatPurrfect</div>
+    <div id="banner">
+        <h2 style="display: inline; margin-left: 10px;">ChatPurrfect</h2>
+        <img src="cat.png" alt="Icon" style="height:36px; width:36px;">
+    </div>
     <div id="chat-history"></div>
     <form id="chat-form" onsubmit="submitMessage(event)">
         <input type="text" id="message-input" placeholder="Type your message here" required>

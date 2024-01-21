@@ -4,13 +4,12 @@ import time
 from openai import OpenAI
 from dotenv import load_dotenv
 import json
-from catCalling import getCatPictureAdv
+from catCalling import getCatPicture
 
 load_dotenv()
 OPENAI_API_KEY= os.getenv('OPENAI_API_KEY')
 CAT_API_KEY= os.getenv('CAT_API_KEY')
 client = OpenAI()
-
 
 headers = {
 'Authorization': "Bearer {}".format(OPENAI_API_KEY),
@@ -24,7 +23,7 @@ def initAssistant():
     tools=[{
         "type": "function",
         "function": {
-            "name": "getCatPictureAdv",
+            "name": "getCatPicture",
             "description": "Get pictures of cats based on specified criteria",
             "parameters": {
             "type": "object",
